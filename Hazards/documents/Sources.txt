@@ -1,0 +1,8 @@
+Sources:
+http://www.pacioos.hawaii.edu/: Tsunami
+https://volcanoes.usgs.gov/observatories/hvo/hawaii_lava_flows.html: Lava Flow
+https://earthquake.usgs.gov/earthquakes/feed/v1.0/kml.php: Earthquakes
+
+Flooding
+Wildfire
+Hurricane

@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Home Page</title>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+  <script src="http://maps.googleapis.com/maps/api/js?v=3.exp&libraries=places&=geometry&key=AIzaSyBDeKh4FF-2J1pT6C82m6XlgdTDmd7AjGk"></script>
+  <script src="js/jquery-3.1.0.js"></script>
+  <script src="js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="js/knockout-3.4.0.js"></script>
+  <script type="text/javascript" src="js/geoxml3.js"></script>
+  <script type="text/javascript" src="js/v3_epoly.js"></script>
+  <link rel="stylesheet" href="css/bootstrap.min.css">
+  <link rel="stylesheet" type="text/css" href="css/cstylesheet.css">
+</head>
+<body>
+
+<div class="nav navbar-inverse navbar-static-top">
+  <div class="container">
+	<div class="navbar-header">
+	  <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+		<span class="sr-only">Toggle navigation</span>
+		<span class="icon-bar"></span>
+		<span class="icon-bar"></span>
+		<span class="icon-bar"></span>
+	  </button>
+	  <a data-bind="visible: header, click: homepage" class="navbar-brand" href="#">Natural Hazards</a>
+	  <div data-bind="visible: searchBar" id="Search">
+        <input id="pac-input2" class="controls" type="text" placeholder="Physical Address">
+	  </div>
+	</div>
+	<div id="navbar" class="collapse navbar-collapse">
+	  <ul class="nav navbar-nav navbar-right">
+		<li><a href="#" data-bind="click: homepage">Home</a></li>
+		<li><a href="#about">About</a></li>
+		<li><a href="#contact">Contact</a></li>
+		<li data-bind="visible: showLogin"><a href="#loginModal" data-toggle="modal">Login</a></li>
+		<li><a href="#profile" data-bind="foreach: loggedin, click: profileFun" id="loginName"><span data-bind="text: firstname"></span> <span data-bind="text: lastname"></span></a></li>
+		<li data-bind="visible: showLogout"><a href="../serverside/logout.php">Logout</a></li>
+ 	  </ul>
+	</div>
+  </div>
+</div>
+
+<div data-bind="visible: indexImage" id="myCarousel" class="carousel slide">
+  <div class="carousel-inner">
+	<div class="item active">
+	  <img src="images/Pahoeoe_fountain_original.jpg" alt="hazard" class="img-responsive">
+	  <div class="carousel-caption">
+	    <h3>Find the right home for you!</h3>
+		<input id="pac-input" class="controls" type="text" placeholder="Physical Address">
+	  </div>
+	</div>
+  </div>
+</div>
+
+<div class="container" id="wrapper" data-bind="visible: wrap">
+  <div class="row" id="row1">
+	<div class="col" id="col1">
+      <div id="map-canvas"></div>
+	</div>
+	<div id="dataCol">
+    <div class="col" id="col2">
+	  <select id="kmlList" class="form-control" data-bind="options: filename, value: filenameSelected, optionsCaption: '- Display File -', optionsText: 'filename', valueAllowUnset: true, event: {change: display()}"></select>  
+    </div>
+	  <div class="col" id="col3">
+	    <div class="panel-group" data-bind="foreach: hazList" id="hazardList">
+		  <div class="panel panel-default">
+		    <div class="panel-heading">
+			  <a data-toggle="collapse" data-bind="attr: {href: '#hazName'+$index()}"><span id="zoneValue" data-bind="text: zone()[$index()]"></span><p data-bind="text: hazName"></p></a>
+			</div>
+			<div class="panel-collapse collapse" data-bind="attr: {id: 'hazName'+$index()}">
+			  <div class="panel-body">Description: <span data-bind="text: getDes()[$index()]"></span></div>
+			  <div class="panel-body">Mitigation: <span data-bind="text: getMit()[$index()]"></span></div>
+			  <div class="panel-body">Source: <span data-bind="text: getSrc()[$index()]"></span></div>
+			</div>
+		  </div>
+		</div>
+	  </div>
+	</div>
+  </div>
+</div>
+
+<div class="modal fade" id="loginModal" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+	  <form class="form-horizontal" data-bind="submit: login">
+		<div class="modal-header">
+		  <h3>Please provide a username and password to login.</h3>
+		</div>
+		<div class="modal-body">
+		  <div class="form-group">
+			<label for="uname" class="col-lg-2 control-label">Username: </label>
+			<div class="col-lg-10">
+			  <input id="uname" class="form-control" name="uname" minlength="2" type="text" placeholder="username" required />
+			</div>			
+			<label for="pword" class="col-lg-2 control-label">Password: </label>
+			<div class="col-lg-10">
+		      <input id="pword" type="password" class="form-control" name="password" placeholder="password" required />
+			</div>
+		  </div>
+		</div>
+		<div class="modal-footer">
+		  <a class="btn btn-default" data-dismiss="modal">Close</a>
+		  <button class="btn btn-primary" type="submit">Submit</button>
+		</div>
+	  </form>
+	</div>
+  </div>
+</div>
+
+<div class="container" id="adminLayout" data-bind="visible: adminFun">
+  <div class="row">
+	<div class="col-sm-5 col-md-3">
+	  <div class="thumbnail">
+		<span style="font-size:6.0em;" class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+		<div class="caption">
+		  <h3>Add Hazard</h3>
+		  <button class="btn btn-primary" data-toggle="modal" data-target="#newHazardModal" type="button">Open</button>
+		</div>
+	  </div>
+	</div>
+	<div class="col-sm-5 col-md-3">
+	  <div class="thumbnail">
+		<span style="font-size:6.0em;" class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+		<div class="caption">
+		  <h3>Manage Hazard Data</h3>
+		  <button data-bind="click: hazMenu" class="btn btn-primary" type="button">Open</button>
+		</div>
+	  </div>
+	</div>
+	<div class="col-sm-5 col-md-3">
+	  <div class="thumbnail">
+		<span style="font-size:6.0em;" class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+		<div class="caption">
+		  <h3>Upload File</h3>
+		  <button data-bind="click: getHaz" class="btn btn-primary" data-toggle="modal" data-target="#newFileModal" type="button">Open</button>
+		</div>
+	  </div>
+	</div>
+  </div>
+  <button id="exitAdmin" data-bind="click: exitAdminMenu" class="btn btn-danger" type="button">Exit</button>
+</div>
+
+<div class="container" id="hazardLayout" data-bind="visible: hazardMenu">
+  <div class="row">
+	<div class="col-sm-5 col-md-3">
+	  <div class="thumbnail">
+		<span style="font-size:6.0em;" class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+		<div class="caption">
+		  <h3>view Hazard</h3>
+		  <button class="btn btn-primary" data-toggle="modal" data-target="#viewHazardModal" type="button">Open</button>
+		</div>
+	  </div>
+	</div>
+  </div>
+  <button id="exitHaz" data-bind="click: exitHazMenu" class="btn btn-danger" type="button">Exit</button>
+</div>
+
+<div class="modal fade" id="newHazardModal" role="dialog">
+  <div class="modal-dialog modal-lg">
+	<div class="modal-content">
+	  <form class="form-horizontal" data-bind="submit: addNewHaz">
+		<div class="modal-header">
+		  <h3>Please provide the required data</h3>
+		</div>
+		<div class="modal-body">
+		  <div class="form-group">
+			<label for="hname" class="col-lg-2 control-label">Hazard Name</label>
+			<div class="col-lg-10">
+			  <input id="hname" name="hname" class="form-control" type="text" data-bind="value: hnameValue" />
+			</div>
+		  </div>
+		</div>
+		<div class="modal-footer">
+		  <a class="btn btn-default" data-dismiss="modal">Close</a>
+		  <button class="btn btn-primary" type="submit">Submit</button>
+		</div>
+	  </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="newHazDefModal" role="dialog">
+  <div class="modal-dialog modal-lg">
+	<div class="modal-content">
+	  <form class="form-horizontal">
+		<div class="modal-header">
+		  <h4>Add Hazard Details</h4>
+		</div>
+		<div class="modal-body">
+		  <div class="form-group">
+		    <label for="hazName" class="col-lg-2 control-label">Hazard</label>
+		    <div class="col-lg-10">
+			  <select class="form-control" style="width: auto;" data-bind="options: hname, value: hnameSelected, optionsCaption: '- Select -', optionsText: 'hname', valueAllowUnset: true"></select>
+		    </div>
+		  </div>
+		</div>
+		<div class="modal-footer">
+		  <a class="btn btn-default" data-dismiss="modal">Close</a>
+		  <button data-bind="click: uploadFile" class="btn btn-primary" id="load" data-loading-text="Processing" type="submit">Submit</button>
+		</div>
+	  </form>
+	</div>
+  </div>
+</div>
+
+<div class="modal fade" id="newFileModal" role="dialog">
+  <div class="modal-dialog modal-lg">
+	<div class="modal-content">
+	  <form class="form-horizontal" enctype="multipart/form-data">
+		<div class="modal-header">
+		  <h4>Import file</h4>
+		</div>
+		<div class="modal-body">
+		  <div class="form-group">
+		    <label for="hazName" class="col-lg-2 control-label">Hazard</label>
+		    <div class="col-lg-10">
+			  <select class="form-control" style="width: auto;" data-bind="options: hname, value: hnameSelected, optionsCaption: '- Select -', optionsText: 'hname', valueAllowUnset: true"></select>
+		    </div>
+			<label for="filename" class="col-lg-2 control-label">Select file</label>
+			<div class="col-lg-10">
+			  <input class="form-control" style="width: auto;" type="file" name="importFile" id="importFile" accept=".kml">
+			</div>
+		  </div>
+		</div>
+		<div class="modal-footer">
+		  <a class="btn btn-default" data-dismiss="modal">Close</a>
+		  <button data-bind="click: uploadFile" class="btn btn-primary" id="load" data-loading-text="Processing" type="submit">Submit</button>
+		</div>
+	  </form>
+	</div>
+  </div>
+</div>
+
+<div class="modal fade" id="viewHazardModal" role="dialog">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+	  <form class="form-horizontal">
+		<div class="modal-header">
+		  <h3>View Hazards</h3>
+		</div>
+		<div class="modal-body">
+		  <label id="hazLabel" for="hazName" class="control-label">Hazard</label>
+		  <div class="col-lg-10">
+		    <select class="form-control" style="width: auto;" data-bind="options: hname, value: hnameSelected, optionsCaption: '- Select -', optionsText: 'hname', valueAllowUnset: true, event: {change: displayList()}"></select>
+		  </div>
+		  <div class="form-group">
+			<div class="table-wrapper">
+			  <table class="table table-bordered">
+				<thead>
+				  <tr>
+					<th>Haz Value</th>
+					<th>Description</th>
+					<th>Mitigation</th>
+					<th>Source</th>
+					<th>Edit</th>
+					<th>Delete</th>
+				  </tr>
+				</thead>
+				<tbody data-bind="foreach: listHazards">
+				  <tr>
+					<td data-bind="text: hazval"></td>
+					<td data-bind="text: description"></td>
+					<td data-bind="text: mitigation"></td> 
+					<td data-bind="text: source"></td>
+					<td><button data-toggle="modal" data-target="#editHazardDataModal" data-bind="click: $root.editHazData">Edit</button></td>
+					<td><input type="checkbox" data-bind="checkedValue: $data.idhazdata, checked: $root.deleteRow"/></td>
+				  </tr>
+				</tbody>
+			  </table>
+		    </div>
+			<button class="btn btn-default" data-bind="click: addHazardData">Add Data</button>
+			<button class="btn btn-default" data-bind="click: deleteHazardData">Delete</button>
+		  </div>
+		</div>
+	  <div class="modal-footer">
+	    <a class="btn btn-primary" data-dismiss="modal">Close</a>
+	  </div>
+	  </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="editHazardDataModal" role="dialog">
+  <div class="modal-dialog modal-lg">
+	<div class="modal-content">
+	  <form class="form-horizontal" data-bind="submit: updateHazard">
+	    <div class="modal-header">
+		  <h3>Please provide the required data</h3>
+		</div>
+		<div class="modal-body">
+		  <div class="form-group">
+			<label for="uhazval" class="col-lg-2 control-label">Hazard Value</label>
+			<div class="col-lg-10">
+			  <input id="uhazval" name="uhazval" class="form-control" minlength="2" type="number" data-bind="value: uhazValue" />
+			</div>
+			<label for="udescription" class="col-lg-2 control-label">Description</label>
+			<div class="col-lg-10">
+			  <input id="udescription" name="udescription" class="form-control" type="text" data-bind="value: udescriptionValue" />
+			</div>
+			<label for="umitigation" class="col-lg-2 control-label">Mitigation</label>
+			<div class="col-lg-10">
+			  <input id="umitigation" name="umitigation" class="form-control" type="text" data-bind="value: umitigationValue" />
+			</div>
+			<label for="usource" class="col-lg-2 control-label">Source</label>
+			<div class="col-lg-10">
+			  <input id="usource" name="usource" class="form-control" type="text" data-bind="value: usourceValue" />
+			</div>
+		  </div>
+		</div>
+		<div class="modal-footer">
+		  <a class="btn btn-default" data-dismiss="modal">Close</a>
+		  <button class="btn btn-primary" type="submit">Submit</button>
+		</div>
+	  </form>
+    </div>
+  </div>
+</div>
+
+<div class="container" id="navBot">
+  <div class="navbar navbar-default navbar-fixed-bottom">
+	<p class="navbar-text pull-left">Author: Robert Peralta</p>
+	<p class="navbar-text pull-right">Icons used @<a href="http://glyphicons.com/">Glyphicons</a></p>
+  </div>
+</div>
+</body>
+<script type="text/javascript" src="js/globals.js"></script>
+<script type="text/javascript" src="js/functions.js"></script>
+<script type="text/javascript" src="js/mapFunctions.js"></script>
+<script type="text/javascript">
+var viewModel = function(){
+  var self = this;
+  this.deleteRow = ko.observableArray();
+  self.uhazValue = ko.observable();
+  self.udescriptionValue = ko.observable();
+  self.umitigationValue = ko.observable();
+  self.usourceValue = ko.observable();
+  self.dataID = ko.observable();
+  self.hazID = ko.observable();
+  
+  this.deleteHazardData = function(){
+    console.log(this.deleteRow());
+	$.ajax({
+	  type: "POST", 
+	  url: "../serverside/bridge.php",
+	  data: {functions: "deleteHazData", del: this.deleteRow(), returntype: "json"},
+	  datatype: "json",
+	  success: function(data){
+		console.log("success");
+	  }
+	});
+  }
+  
+  this.editHazData = function(listHazards){
+    self.uhazValue(listHazards.hazval);
+    self.udescriptionValue(listHazards.description);
+    self.umitigationValue(listHazards.mitigation);
+    self.dataID(listHazards.idhazdata);
+	self.hazID(listHazards.hazard_idhazard);
+    self.usourceValue(listHazards.source);
+  }
+  
+  this.updateHazard = function(){
+	var cred = {};
+	if(self.uhazValue() === undefined){
+	  cred.hazval = 0;
+	}else{
+	  cred.hazval = $('formElement, #uhazval').val();
+	}
+	if(self.udescriptionValue() === undefined){
+	  cred.des = null;
+	}else{
+	  cred.des = $('formElement, #udescription').val();
+	}
+	if(self.umitigationValue() === undefined){
+	  cred.mit = null;
+	}else{
+	  cred.mit = $('formElement, #umitigation').val();
+	}
+	if(self.usourceValue() === undefined){
+	  cred.src = 0;
+	}else{
+	  cred.src = $('formElement, #usource').val();
+	}
+	cred.iddata = self.dataID();
+	cred.idhaz = self.hazID();
+	cred.functions = "updateHazData";
+	cred.returntype = "json";
+	$.ajax({
+	  type: "POST",
+	  url: "../serverside/bridge.php",
+	  data: cred,
+	  datatype: "json",
+	  success: function(data){
+	    console.log("success");
+	  }
+	});
+  }
+};
+ko.applyBindings(new viewModel());
+</script>
+</html>
